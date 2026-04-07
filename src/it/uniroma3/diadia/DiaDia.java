@@ -1,6 +1,10 @@
+package it.uniroma3.diadia;
 
 
 import java.util.Scanner;
+
+import it.uniroma3.diadia.ambienti.Stanza;
+import it.uniroma3.diadia.attrezzi.Attrezzo;
 
 /**
  * Classe principale di diadia, un semplice gioco di ruolo ambientato al dia.
@@ -26,22 +30,22 @@ public class DiaDia {
 			"o regalarli se pensi che possano ingraziarti qualcuno.\n\n"+
 			"Per conoscere le istruzioni usa il comando 'aiuto'.";
 	
-	static final private String[] elencoComandi = {"vai", "aiuto", "fine"};
+	static final private String[] elencoComandi = {"vai", "aiuto", "fine", "prendi", "posa"};
 
 	private Partita partita;
+	private IOConsole io;
 
-	public DiaDia() {
+	public DiaDia(IOConsole io) {
 		this.partita = new Partita();
+		this.io=io;
 	}
 
 	public void gioca() {
 		String istruzione; 
-		Scanner scannerDiLinee;
 
-		System.out.println(MESSAGGIO_BENVENUTO);
-		scannerDiLinee = new Scanner(System.in);		
+		this.io.mostraMessaggio(MESSAGGIO_BENVENUTO);		
 		do		
-			istruzione = scannerDiLinee.nextLine();
+			istruzione = this.io.leggiRiga();
 		while (!processaIstruzione(istruzione));
 	}   
 
@@ -61,10 +65,14 @@ public class DiaDia {
 			this.vai(comandoDaEseguire.getParametro());
 		else if (comandoDaEseguire.getNome().equals("aiuto"))
 			this.aiuto();
+		else if (comandoDaEseguire.getNome().equals("prendi"))
+			this.prendi(comandoDaEseguire.getParametro());
+		else if (comandoDaEseguire.getNome().equals("posa"))
+			this.posa(comandoDaEseguire.getParametro());
 		else
-			System.out.println("Comando sconosciuto");
+			this.io.mostraMessaggio("Comando Sconosciuto");
 		if (this.partita.vinta()) {
-			System.out.println("Hai vinto!");
+			this.io.mostraMessaggio("Hai vinto");
 			return true;
 		} else
 			return false;
@@ -77,8 +85,8 @@ public class DiaDia {
 	 */
 	private void aiuto() {
 		for(int i=0; i< elencoComandi.length; i++) 
-			System.out.print(elencoComandi[i]+" ");
-		System.out.println();
+			this.io.mostraMessaggio(elencoComandi[i]+" ");
+		this.io.mostraMessaggio("");
 	}
 
 	/**
@@ -86,32 +94,52 @@ public class DiaDia {
 	 * e ne stampa il nome, altrimenti stampa un messaggio di errore
 	 */
 	private void vai(String direzione) {
-		System.out.println(partita.getStanzaCorrente().getDescrizione());
 		if(direzione==null)
-			System.out.println("Dove vuoi andare ?");
+			this.io.mostraMessaggio("Dove vuoi andare ?");
 		Stanza prossimaStanza = null;
-		System.out.println("ciao stronzo 1");
 		prossimaStanza = this.partita.getStanzaCorrente().getStanzaAdiacente(direzione);
 		if (prossimaStanza == null)
-			System.out.println("Direzione inesistente");
+			this.io.mostraMessaggio("Direzione inesistente");
 		else {
 			this.partita.setStanzaCorrente(prossimaStanza);
-			int cfu = this.partita.getCfu();
-			this.partita.setCfu(cfu--);
+			int cfu = this.partita.getGiocatore().getCfu();
+			this.partita.getGiocatore().setCfu(cfu-1);
 		}
-		System.out.println("ciao stronzo 2");
-		System.out.println(partita.getStanzaCorrente().getDescrizione());
+		this.io.mostraMessaggio(partita.getStanzaCorrente().getDescrizione());
 	}
 
 	/**
 	 * Comando "Fine".
 	 */
 	private void fine() {
-		System.out.println("Grazie di aver giocato!");  // si desidera smettere
+		this.io.mostraMessaggio("Grazie di aver giocato!");  // si desidera smettere
+	}
+	
+	private void prendi(String nomeAttrezzo) {
+		Attrezzo a=this.partita.getStanzaCorrente().getAttrezzo(nomeAttrezzo);
+		if(a==null) {
+			this.io.mostraMessaggio("attrezzo inesistente!");
+			return;
+		}
+		this.partita.getGiocatore().getBorsa().addAttrezzo(a);
+		this.partita.getStanzaCorrente().removeAttrezzo(a);
+		this.io.mostraMessaggio("raccolto: " + a);
+	}
+	
+	private void posa(String nomeAttrezzo) {
+		Attrezzo a=this.partita.getGiocatore().getBorsa().getAttrezzo(nomeAttrezzo);
+		if(a==null) {
+			this.io.mostraMessaggio("attrezzo inesistente!");
+			return;
+		}
+		this.partita.getGiocatore().getBorsa().removeAttrezzo(nomeAttrezzo);
+		this.partita.getStanzaCorrente().addAttrezzo(a);
+		this.io.mostraMessaggio("posato: " + a);
 	}
 
 	public static void main(String[] argc) {
-		DiaDia gioco = new DiaDia();
+		IOConsole io=new IOConsole();
+		DiaDia gioco = new DiaDia(io);
 		gioco.gioca();
 	}
 }
