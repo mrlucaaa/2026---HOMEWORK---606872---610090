@@ -1,3 +1,9 @@
+/Attrezzo.class
+/Comando.class
+/DiaDia.class
+/Labirinto.class
+/Partita.class
+/Stanza.class
 .metadata
 bin/
 tmp/
@@ -58,3 +64,4 @@ local.properties
 # Uncomment this line if you wish to ignore the project description file.
 # Typically, this file would be tracked if it contains build/dependency configurations:
 #.project
+>>>>>>> 0274b885b0188fc15767847057111ca05f6c90e1
